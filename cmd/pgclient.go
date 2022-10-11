@@ -46,17 +46,29 @@ func connPG14() (err error) {
 }
 
 // 功能: 查询好友
-func QueryFriendByName(name string) (*table.Friend, error) {
+//
+//	@param field[string]  姓名或者id
+func QueryFriend(field string) (friendInfo *table.Friend, err error) {
 	ctx := context.Background()
 	ormDb := bun.NewDB(DB2pg, pgdialect.New())
 
-	friendInfo := new(table.Friend)
-	err := ormDb.NewSelect().Model(friendInfo).Column("friend.*").
-		Where("name = ?", name).
-		Scan(ctx)
-	if err != nil {
-		log.Panicln("fail to find frind info, err=", err)
-		friendInfo = nil
+	friendInfo = new(table.Friend)
+	if len(field) < 26 { // 将输入字段当姓名查
+		err = ormDb.NewSelect().Model(friendInfo).Column("friend.*").
+			Where("name = ?", field).
+			Scan(ctx)
+		if err != nil {
+			log.Panicln("fail to find frind info, err=", err)
+			friendInfo = nil
+		}
+	} else {
+		err = ormDb.NewSelect().Model(friendInfo).Column("friend.*").
+			Where("friend_id = ?", field).
+			Scan(ctx)
+		if err != nil {
+			log.Panicln("fail to find frind info, err=", err)
+			friendInfo = nil
+		}
 	}
 	return friendInfo, err
 }
@@ -128,6 +140,26 @@ func CheckChatLatest(petName string) (*table.ChatLatest, bool) {
 	return chatRecord, true
 }
 
+// 功能: 查询最新聊天记录
+//
+//	@ return [int] 按年月查询的记录总数
+//
+// e.g. SELECT * FROM "chat_latest" WHERE datetime::VARCHAR LIKE '2022-10%';
+func QueryChatLastest(year, month string) ([]table.ChatLatest, int) {
+	ctx := context.Background()
+	ormDb := bun.NewDB(DB2pg, pgdialect.New())
+
+	dateLike := "'" + year + "-" + month + "%'"
+	var latestChatList []table.ChatLatest
+	err := ormDb.NewRaw("SELECT * FROM chat_latest WHERE datetime::VARCHAR LIKE "+dateLike).
+		Scan(ctx, &latestChatList)
+	if err != nil {
+		log.Println("fail to find latest chat table, err=", err)
+		latestChatList = nil
+	}
+	return latestChatList, len(latestChatList)
+}
+
 // 功能: 查询历史聊天记录
 func QueryChatHistory(friendID string) ([]table.ChatHistory, int) {
 	ctx := context.Background()
@@ -156,7 +188,7 @@ func InsertChatLatest(dataI any) (ok bool) {
 		if err != nil {
 			panic(err) // accidental error
 		}
-		friendInfo, err := QueryFriendByName((*greetp).Name)
+		friendInfo, err := QueryFriend((*greetp).Name)
 		if err != nil {
 			panic(err) // accidental error
 		}

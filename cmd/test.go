@@ -7,7 +7,7 @@ import (
 
 // 功能: check ORM section is ok
 func test221009() {
-	friendInfo, _ := QueryFriendByName("潘瑜妍")
+	friendInfo, _ := QueryFriend("潘瑜妍")
 	contactArr, total := QueryContact(friendInfo.FriendId.String())
 	log.Printf("have %d contact ways:%+v\n", total, contactArr)
 
