@@ -15,6 +15,9 @@ func main() {
 		return
 	}
 
+	go GinMain()
+
+	// 自己实现http服务
 	http.HandleFunc("/", handler)
 	if err := http.ListenAndServe(":2210", nil); err != nil {
 		log.Println(err)
