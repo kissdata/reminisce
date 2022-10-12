@@ -2,7 +2,7 @@
 
 helloworld 典藏版
 
-程序默认运行在 Ubuntu 2204上
+程序默认运行在 Ubuntu 2204上, 需要先安装 Go 1.19+
 
 ## 技术栈
 
@@ -11,6 +11,8 @@ helloworld 典藏版
 3. PG14 操作
 
 ## 特色
+
+- 实现两个http服务, 一个在 `:2210` 端口，另一个用Gin写的在 `:2222` 端口;
 
 - 成果显示, 能显示当月/年交流的人数。
 
@@ -27,9 +29,10 @@ helloworld 典藏版
 ```
 ├── cmd
 │   ├── pgclient.go        # orm 操作 
-│   └── main.go            # 启动入口
+│   ├── main.go            # 启动入口
 │   ├── statement.go       # 全局变量
-│   └── test.go            # 测试
+│   ├── test.go            # 测试
+│   └── usegin.go          # http服务(Gin)
 ├── common
 │   |── config.go          # 显示的信息结构
 │   └── table              # 数据表结构体
@@ -47,7 +50,8 @@ helloworld 典藏版
 └── README.md
 ```
 
-## 其他
+
+## 调试方法
 
 使用 VS Code 调试
 
@@ -67,4 +71,13 @@ helloworld 典藏版
     ]
 }
 ```
+
+e.g.1 浏览器打开 `localhost:2210` 查看。
+
+e.g.2 Postman 设置需求URL `ip:2222/addchat` , 选择 **POST**, 菜单选择 Body -> x-www-form-urlencoded, 填写 key-value 参数, 点击 Send, 看响应情况。
+
+
+## Reference 
+
+- [7天用Go从零实现Web框架Gee教程](https://geektutu.com/post/gee-day3.html)
 
