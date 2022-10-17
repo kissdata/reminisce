@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"reminisce/common"
 	"reminisce/common/table"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/uptrace/bun"
@@ -24,6 +26,28 @@ func String2Time(tm string) time.Time {
 		}
 	}
 	return time.Time{}
+}
+
+// 功能: 合并交流的内容，通过“§§”分隔
+func contentCombine(contents ...string) string {
+	var res bytes.Buffer
+	for _, content := range contents {
+		res.WriteString(content)
+		res.WriteString("§§")
+	}
+	return strings.TrimSuffix(res.String(), "§§")
+}
+
+// 功能: 检查拼接的文本中的老内容有没有新内容
+func hasDuplicate(combineStrs, x string) bool {
+	contentArr, exist := strings.Split(combineStrs, "§§"), false
+	for _, content := range contentArr {
+		if content == x {
+			exist = true
+			break
+		}
+	}
+	return exist
 }
 
 // 功能: 连接mysql8
@@ -201,6 +225,9 @@ func InsertChatLatest(dataI any) (ok bool) {
 			Content:   data.Content,
 		}
 		latestRecord.Datetime = String2Time(data.ChatDate)
+		// fix bug : 不写，date类型会自动减少8小时
+		repairHour, _ := time.ParseDuration("8h")
+		latestRecord.Datetime = latestRecord.Datetime.Add(repairHour)
 
 		result, err := ormDb.NewInsert().Model(&latestRecord).
 			On("CONFLICT (friend_id) DO UPDATE").
@@ -256,7 +283,12 @@ func InsertChatHistory(lastRecord *table.ChatLatest) (int64, bool) {
 	return checkRecord.ID, true
 }
 
-// 功能: 增加一条交流记录
+/*
+功能: 增加一条最新交流记录
+
+	@description: 如果没有聊过，直接增加到最新记录表；
+	如果聊过，先确认有没有当天同类话题，有就合并，没有就将旧记录移入到历史表
+*/
 func AddChatLatest(newData ChatData) bool {
 	ctx := context.Background()
 	ormDb := bun.NewDB(DB2pg, pgdialect.New())
@@ -265,10 +297,18 @@ func AddChatLatest(newData ChatData) bool {
 		fmt.Println("not a old friend, you have to put info in friend table.")
 		return false
 	}
-	// 移动同名旧记录到历史表
 	if lastRecord, exist := CheckChatLatest(newData.PetName); exist {
-		//  先加后删
-		if _, ok := InsertChatHistory(lastRecord); !ok {
+		// 同一天交流的内容，是同类话题合并，不是同类话题的就移动到历史
+		if lastRecord.Datetime.Format("2006-01-02") == strings.Split(newData.ChatDate, " ")[0] &&
+			lastRecord.ChatTopic == newData.ChatTopic {
+
+			if !hasDuplicate(lastRecord.Content, newData.Content) {
+				newData.Content = contentCombine(lastRecord.Content, newData.Content)
+			} else {
+				fmt.Printf("新记录的内容 %v 是最新记录表里的重复数据, 忽略。", newData.Content)
+				return false
+			}
+		} else if _, ok := InsertChatHistory(lastRecord); !ok {
 			return false
 		}
 		_, err := ormDb.NewDelete().Model(lastRecord).WherePK().Exec(ctx)
