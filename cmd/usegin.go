@@ -46,6 +46,22 @@ func getChatInfo(c *gin.Context) {
 	})
 }
 
+// 功能: 获取同类身份的所有人的信息
+//
+//	@description: 包括姓名、初识时间、上次聊天时间、聊天话题、超过天数
+func getInfoByFriendType(c *gin.Context) {
+	friendType := c.Param("friend_type")
+	if _, ok := FriendTypeMap[friendType]; !ok {
+		c.JSON(200, gin.H{
+			"friend_type": friendType,
+			"⚠ notice":    "not this friend type, input ok?",
+		})
+		return
+	}
+
+	//TODO:
+}
+
 // 功能: 添加一条叙旧记录
 //
 //	@param pet_name  必须提供昵称
@@ -68,7 +84,7 @@ func addchat(c *gin.Context) {
 		chatdate.ChatTopic = "例行叙旧" // 参数为空时
 	}
 
-	if ok := InsertChatLatest(chatdate); !ok {
+	if ok := AddChatLatest(chatdate); !ok {
 		c.JSON(200, gin.H{
 			"state": "fail to add a new record!",
 			"date":  chatdate,
@@ -89,6 +105,7 @@ func GinMain() {
 	router := gin.Default() // 携带基础中间件启动
 
 	router.GET("/friend/:pet_name", getChatInfo)
+	router.GET("/reminisce/:friend_type", getInfoByFriendType)
 	router.POST("/addchat", addchat)
 
 	router.Run(":2222")
