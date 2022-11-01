@@ -28,6 +28,7 @@ helloworld 典藏版
 
 ```
 ├── cmd
+│   ├── html.go            # 网页操作 
 │   ├── pgclient.go        # orm 操作 
 │   ├── main.go            # 启动入口
 │   ├── statement.go       # 全局变量
@@ -35,9 +36,11 @@ helloworld 典藏版
 │   └── usegin.go          # http服务(Gin)
 ├── common
 │   |── config.go          # 显示的信息结构
-│   └── table              # 数据表结构体
-│       ├── data.go
-│       └── friend.go           
+│   │── table              # 数据表结构体
+│   │   ├── data.go
+│   │   └── friend.go
+│   └── templates          # 静态文件
+│       └── index.tmpl      
 ├── doc
 │   ├── design.md          # 详设文档
 │   ├── table4data.sql     # 建表语句示例
@@ -74,10 +77,13 @@ helloworld 典藏版
 
 e.g.1 浏览器打开 `localhost:2210` 查看。
 
-e.g.2 Postman 设置需求URL `ip:2222/addchat` , 选择 **POST**, 菜单选择 Body -> x-www-form-urlencoded, 填写 key-value 参数, 点击 Send, 看响应情况。
+e.g.2 浏览器打开 `localhost:2210/html/` 查看网页版。
+
+e.g.3 Postman 设置需求URL `ip:2222/addchat` , 选择 **POST**, 菜单选择 Body -> x-www-form-urlencoded, 填写 key-value 参数, 点击 Send, 看响应情况。
 
 
 ## Reference 
 
 - [7天用Go从零实现Web框架Gee教程](https://geektutu.com/post/gee-day3.html)
 
+- [Go Web Examples Courses](https://gowebexamples.com/hello-world/)
