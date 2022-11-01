@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>reminisce</title>
+</head>
+<body>
+    
+    {{ define "inc" }}{{ len (printf "%*s " . "") }}{{ end -}}
+
+    <form action="" method="get">
+        <input type="text" name="year" value="2022">年 &nbsp;
+        <select name="month"> 
+            <option value="" selected disabled hidden>选择</option>   
+            {{ range $i := Iterate 12 }}
+                <option value="{{ template "inc" $i }}">
+                    {{ template "inc" $i }}
+                </option>
+            {{ end }}        
+        </select>月
+        <input type="submit" value="查看">
+    </form>
+
+    <ul>
+    {{ range $element, $r := .}}
+    <li>
+        <p><font color="pink">{{ $r.petname}}</font> {{ $r.firstknow }}结交</p>
+        <table>
+            <tr>
+                <td><div style="width: 101px"> {{ $r.latesttime }} </td>
+                <td>话题：{{ $r.talktopic}}</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td> {{ $r.content}} </td>
+            </tr>
+        </table>
+    </li>
+    {{ end }}
+    </div>
+    </ul>
+
+</body>
+</html>

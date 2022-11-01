@@ -19,6 +19,8 @@ func main() {
 
 	// 自己实现http服务
 	http.HandleFunc("/", handler)
+	http.HandleFunc("/html/", handlerHtml) // 网页版
+
 	if err := http.ListenAndServe(":2210", nil); err != nil {
 		log.Println(err)
 	}
@@ -58,5 +60,5 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	for _, record := range outputArr {
 		fmt.Fprintf(w, "%q\n", record)
 	}
-	fmt.Fprintf(w, "本月共和%d个好友叙旧。", count)
+	fmt.Fprintf(w, "本月共和%d个好友叙旧。\n", count)
 }
